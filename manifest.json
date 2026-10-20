@@ -1,0 +1,17 @@
+{
+  "name": "PDF to Images",
+  "short_name": "PDF Images",
+  "description": "Every page of a PDF as a JPG or PNG, drawn in the browser. No account, no upload, no watermark.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f2f7",
+  "theme_color": "#7a3b8f",
+  "lang": "en",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

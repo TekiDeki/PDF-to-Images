@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#7a3b8f">
+<title>PDF to Images · pages as JPG or PNG, made in the tab</title>
+<meta name="description" content="Turn every page of a PDF into a JPG or PNG at the resolution you pick. No account, no watermark, no upload: the pages are drawn inside the browser.">
+<meta name="author" content="Kristian Mario Miskovic (TekiDeki)">
+<meta name="robots" content="index, follow">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+<script>
+/* Paint the stored theme before the body exists, so a reload never flashes. */
+(function () {
+  try {
+    var saved = localStorage.getItem('pdf-images.theme');
+    var dark = saved === 'dark' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  } catch (e) {
+    document.documentElement.setAttribute('data-theme', 'light');
+  }
+}());
+</script>
+</head>
+<body>
+
+<a class="skip" href="#editor" data-i18n="skip">Skip to the file</a>
+
+<header class="topbar">
+  <div class="wrap topbar-in">
+    <a class="brand" href="#editor">
+      <span class="mark" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="5" y="4" width="15" height="20" rx="2.2" fill="none" stroke="currentColor" stroke-width="2.1"/><path d="M9 10h7M9 14h7M9 18h4" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><path d="M17 18l4 4 6-8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="brand-text">PDF<span class="brand-dot">.</span>Images</span>
+    </a>
+    <div class="tools">
+      <label class="sr" for="lang" data-i18n="uiLanguage">Interface language</label>
+      <select id="lang" class="select"></select>
+      <button id="theme" class="iconbtn" type="button" data-i18n-aria-label="theme" aria-label="Switch theme">
+        <svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.2M12 19.2v2.2M4.2 12H2M22 12h-2.2M6 6l1.6 1.6M16.4 16.4L18 18M18 6l-1.6 1.6M7.6 16.4L6 18"/></svg>
+        <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.4A8.4 8.4 0 0 1 9.6 4a8.4 8.4 0 1 0 10.4 10.4z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap layout">
+
+  <section class="editor" id="editor" aria-label="Settings">
+
+    <div class="panel">
+      <h1 data-i18n="h1">PDF pages as images, without the upload</h1>
+      <p class="lede" data-i18n="lede">Drop a PDF and take every page back as a JPG or PNG. The pages are drawn inside this tab: no account, no watermark, and nothing is sent anywhere.</p>
+    </div>
+
+    <div class="panel">
+      <label class="drop" id="drop" for="file">
+        <svg class="drop-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5"/><path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg>
+        <strong data-i18n="dropTitle">Drop a PDF here</strong>
+        <span data-i18n="dropOr">or choose a file from this computer</span>
+        <input id="file" type="file" accept="application/pdf,.pdf" multiple>
+      </label>
+      <p class="hint" data-i18n="dropHint">Several PDFs can go in at once. They are read from your disk and stay on this machine.</p>
+
+      <ul class="files" id="files"></ul>
+
+      <button id="btn-clear" class="btn ghost small" type="button" hidden data-i18n="clear">Start over</button>
+    </div>
+
+    <div class="panel" id="panel-pages">
+      <h2 data-i18n="rangeTitle">Which pages</h2>
+      <div class="seg" role="group" aria-labelledby="rangeLabel">
+        <label class="seg-item"><input type="radio" name="range" value="all" checked><span data-i18n="rangeAll">All pages</span></label>
+        <label class="seg-item"><input type="radio" name="range" value="some"><span data-i18n="rangeSome">Only these</span></label>
+      </div>
+      <label class="field" id="range-field" hidden>
+        <span data-i18n="rangeLabel2">Pages to take</span>
+        <input id="range" type="text" inputmode="numeric" placeholder="1-3, 7, 10-12" data-i18n-placeholder="rangePlaceholder" value="">
+      </label>
+      <p class="warn" id="range-warn" hidden data-i18n="rangeBad">That page list cannot be read. Try 1-3, 7.</p>
+    </div>
+
+    <div class="panel">
+      <h2 data-i18n="formatTitle">Format</h2>
+      <div class="seg" role="group">
+        <label class="seg-item"><input type="radio" name="format" value="jpg" checked><span>JPG</span></label>
+        <label class="seg-item"><input type="radio" name="format" value="png"><span>PNG</span></label>
+      </div>
+      <p class="hint" data-i18n="formatHint">JPG makes smaller files for photos and scans. PNG keeps text and thin lines sharp, and weighs more.</p>
+
+      <label class="field" id="quality-field">
+        <span><span data-i18n="qualityTitle">JPG quality</span> <b id="quality-out">85</b></span>
+        <input id="quality" type="range" min="40" max="100" step="5" value="85">
+      </label>
+
+      <h2 data-i18n="resTitle">Resolution</h2>
+      <div class="seg" role="group">
+        <label class="seg-item"><input type="radio" name="dpi" value="72"><span>72</span></label>
+        <label class="seg-item"><input type="radio" name="dpi" value="150" checked><span>150</span></label>
+        <label class="seg-item"><input type="radio" name="dpi" value="300"><span>300</span></label>
+      </div>
+      <p class="hint" data-i18n="resHint">In dots per inch: 72 for a screen, 150 for everyday use, 300 for print.</p>
+      <p class="hint" id="res-note"></p>
+    </div>
+
+    <div class="panel actions-panel">
+      <button id="convert" class="btn primary wide" type="button" disabled data-i18n="convert">Turn into images</button>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+      <p class="warn" id="error" role="alert" hidden></p>
+    </div>
+
+  </section>
+
+  <section class="viewer" aria-label="Images">
+    <div class="viewer-bar">
+      <span class="pages-count" id="count" data-i18n="resultsEmpty">The images appear here, one card per page.</span>
+      <button id="dl-all" class="btn primary small" type="button" hidden data-i18n="downloadAll">Download all as ZIP</button>
+    </div>
+    <div class="progress" id="progress" hidden>
+      <div class="bar"><span id="bar-fill"></span></div>
+      <p id="progress-text"></p>
+    </div>
+    <div class="shots" id="results"></div>
+    <div class="empty" id="empty">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4 17l4.5-4.5 3 3L15 11l5 5"/></svg>
+      <p data-i18n="emptyText">Nothing here yet. Choose a PDF, decide the size, press the button.</p>
+    </div>
+  </section>
+
+</main>
+
+<section class="about wrap">
+  <h2 data-i18n="aboutTitle">Why it is free all the way to the image</h2>
+  <div class="about-grid">
+    <div>
+      <h3 data-i18n="about1Title">Nothing leaves the tab</h3>
+      <p data-i18n="about1Body">The page carries its own PDF renderer, so the file you open is read and drawn by this browser. No server, no upload, no queue, and the tool keeps working with the network off.</p>
+    </div>
+    <div>
+      <h3 data-i18n="about2Title">No count, no card</h3>
+      <p data-i18n="about2Body">Every other converter counts pages and asks for an account on the third one. Here there is nothing to count, nothing to sign up for, and no address collected.</p>
+    </div>
+    <div>
+      <h3 data-i18n="about3Title">The size is your choice</h3>
+      <p data-i18n="about3Body">72, 150 or 300 dots per inch, JPG or PNG, and a quality slider that shows the weight of the file before you press the button.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="wrap">
+    <p><span data-i18n="footerFree">Every tool here is free and stays free.</span> <a href="https://freehtml.dev">freehtml.dev</a> · <a href="https://github.com/TekiDeki/PDF-to-Images">GitHub</a></p>
+  </div>
+</footer>
+
+<div class="modal" id="locked" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="locked-title">
+    <h2 id="locked-title" data-i18n="lockedTitle">This PDF is locked</h2>
+    <p data-i18n="lockedHint">Type its password. It is used here and never leaves this tab.</p>
+    <label class="field">
+      <span data-i18n="passwordLabel">Password</span>
+      <input id="password" type="password" autocomplete="off" spellcheck="false">
+    </label>
+    <p class="warn" id="locked-warn" hidden data-i18n="wrongPassword">That password did not open the file.</p>
+    <div class="modal-actions">
+      <button id="unlock" class="btn primary" type="button" data-i18n="unlock">Open</button>
+      <button id="locked-cancel" class="btn ghost" type="button" data-i18n="cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script type="text/plain" id="engine-main">/* PDF engine placeholder */</script>
+<script type="text/plain" id="engine-worker">/* PDF worker placeholder */</script>
+<script src="model.js"></script>
+<script src="i18n/locales.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

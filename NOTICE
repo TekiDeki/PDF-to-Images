@@ -1,0 +1,31 @@
+PDF to Images
+Copyright 2026 Kristian Mario Miskovic (TekiDeki)
+https://github.com/TekiDeki/PDF-to-Images
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+--------------------------------------------------------------------------
+Third-party software
+--------------------------------------------------------------------------
+
+PDF.js, version 6.4.299
+Copyright 2024 Mozilla Foundation
+https://github.com/mozilla/pdf.js
+
+Licensed under the Apache License, Version 2.0. The two files that ship with
+this build are `vendor/pdf.min.mjs` and `vendor/pdf.worker.min.mjs`, copied
+unmodified from the published package `pdfjs-dist`. build.py inlines both of
+them into index.html as text, and the page turns that text into blob URLs when
+a PDF is opened, so the renderer runs from the same file as the rest of the
+application. The full licence text is in `vendor/LICENSE-pdfjs.txt`.
+
+No other library is bundled. No analytics, no fonts, no CDN request: the page
+asks nothing of the network at runtime, not even the copy of the renderer it
+needs, because that copy is inside the page.
+
+--------------------------------------------------------------------------
+Names
+--------------------------------------------------------------------------
+
+PDF is a format published as ISO 32000. The name is used descriptively. No
+affiliation with Adobe, Mozilla or any standards body is claimed or implied.
