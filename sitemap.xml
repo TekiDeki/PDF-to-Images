@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- PDF-to-Images - scris 31.10.2026.
+     O singura pagina: unealta e un fisier, tot continutul inline. Adresa are slash la final,
+     pentru ca GitHub Pages raspunde 301 de la /PDF-to-Images la /PDF-to-Images/, iar un sitemap care trimite
+     la un redirect pierde din semnal. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://tekideki.github.io/PDF-to-Images/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>
