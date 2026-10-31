@@ -158,3 +158,13 @@ h1{font-size:22px;margin:0 0 6px;letter-spacing:-.015em}
   .shot img{height:190px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+
+
+
+  /* regula casei: tinte de atingere pe mobil */
+  @media (pointer: coarse), (max-width: 700px) {
+    .skip { min-height: 34px; display: inline-flex; align-items: center; }
+    .brand { min-height: 34px; display: inline-flex; align-items: center; }
+    #quality { min-height: 34px; display: inline-flex; align-items: center; }
+    a { padding-block: 9px; }
+  }
